@@ -3,6 +3,7 @@ FROM dynverse/dynwrap:bioc
 RUN R -e 'devtools::install_github("dcellwanger/CellTrails")'
 RUN R -e 'devtools::install_github("dynverse/dyntoy")'
 RUN R -e 'devtools::install_github("trestletech/plumber")'
+RUN R -e 'install.packages("future")'
 RUN apt-get update
 RUN apt-get install -y vim
 RUN apt-get install -y httpie
