@@ -35,11 +35,15 @@ Date: Thu, 18 Oct 2018 12:02:23 PM GMT
 A second endpoint is defined that runs the celltrails method on a synthetic
 dataset. It can be run as such:
 
-	http --timeout 10000 localhost:8080/start
+	http localhost:8080/start
 
 The process takes more than 30s and results in a timeout on the http client.
 Nevertheless, the celltrails method should continue running and store the
 result under `/tmp/ti`.
+
+In order to avoid the timeout, a quick hack is:
+
+	http --timeout 10000 localhost:8080/start
 
 # Remarks
 
