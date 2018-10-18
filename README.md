@@ -12,11 +12,14 @@ We do not provide automated builds, but building the image yourself is easy:
 
 Create a directory locally, like `/tmp/ti`. Then, start the container like this:
 
-	docker run -it -v /tmp/ti:/ti/output -p 8080:8080 <image_name>
+	docker run -it -p 8080:8080 <image_name>
 
-In order to test the functionality, use a client of your choice (e.g. [`httpie`](https://httpie.org/))
+## `/test`
 
-```
+In order to test the functionality, use a client of your choice (e.g. [`httpie`](https://httpie.org/)) and use something like this:
+
+
+```sh
 > http 'localhost:8080/test?msg=This works'
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *
@@ -32,26 +35,40 @@ Date: Thu, 18 Oct 2018 12:02:23 PM GMT
 }
 ```
 
-A second endpoint is defined that runs the celltrails method on a synthetic
+## `/start`
+
+A second endpoint is defined that runs the _celltrails_ method on a synthetic
 dataset. It can be run as such:
 
 	http localhost:8080/start
 
-The process takes more than 30s and results in a timeout on the http client.
-Nevertheless, the celltrails method should continue running and store the
-result under `/tmp/ti`.
+The process takes some time and therefore it is wrapped in a _promise_.
 
-In order to avoid the timeout, a quick hack is:
+## `/status`
 
-	http --timeout 10000 localhost:8080/start
+This endpoint provides feedback on the progress of the process:
+
+    http localhost:8080/status
+
+It simply returns `true` when the process has finished and `false` otherwise.
+
+## `/result`
+
+When the process has finished, this endpoint returns the result as a `JSON` serialized object:
+
+    http localhost:8080/result
+
+Please note:
+
+1. the output is not (yet) persisted on disk in the current implementation.
+2. you have to check manually if the process has finished
+
 
 # Remarks
 
 A whole lot of remarks and comments are appropriate here:
 
-1. The method takes too much time for a synchronous REST call. There should be
-an asynchronous `start` endpoint and additionally a `status` and `result`
-endpoint.
+1. The method takes too much time for a synchronous REST call. We therefore implemented a very basic asynchronous version.
 
 2. The current implementation is single-user and single process only. It would
 be better to keep some _state_ the backend. A `start` request would then
@@ -59,12 +76,9 @@ return a job ID to use in subsequent `status` and `result` requests.
 
 3. Some minimal scheduling should be done, even if it's only FIFO.
 
-4. We currently start from a synthetic dataset, generated when the `start`
-endpoint is called. This is good for testing, but worhtless when you want to
-analyse specific data. By mapping volumes and adapting the `runPlumber.R` file
-this is possible. This, together with the previous remarks, however, would
+4. We currently start from a synthetic dataset, generated when the API is started. This is good for testing, but worhtless when you want to
+analyse real data. By mapping volumes and adapting the `runPlumber.R` file
+this is possible. This, together with the previous remark, however, would
 mean file names have to removed in order to avoid name clashes.
 
 In a sense, we would be creating something similar to [Spark Jobserver](https://github.com/spark-jobserver/spark-jobserver).
-
-
