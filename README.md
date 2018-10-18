@@ -55,6 +55,12 @@ return a job ID to use in subsequent `status` and `result` requests.
 
 3. Some minimal scheduling should be done, even if it's only FIFO.
 
+4. We currently start from a synthetic dataset, generated when the `start`
+endpoint is called. This is good for testing, but worhtless when you want to
+analyse specific data. By mapping volumes and adapting the `runPlumber.R` file
+this is possible. This, together with the previous remarks, however, would
+mean file names have to removed in order to avoid name clashes.
+
 In a sense, we would be creating something similar to [Spark Jobserver](https://github.com/spark-jobserver/spark-jobserver).
 
 
