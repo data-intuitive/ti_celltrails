@@ -16,4 +16,4 @@ EXPOSE 8080
 EXPOSE 8787
 
 ADD . /code
-ENTRYPOINT ["Rscript", "/code/plumbExperiment.R"]
+ENTRYPOINT ["Rscript", "/code/plumb.R"]

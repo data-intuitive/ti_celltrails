@@ -5,27 +5,12 @@ library(tibble)
 library(igraph)
 library(future)
 plan(multiprocess)
+library(hash)
 
 library(CellTrails)
 
-checkpoints <- list()
 
-#   ____________________________________________________________________________
-#   Load data                                                               ####
-
-#data <- read_rds("/ti/input/data.rds")
-#params <- jsonlite::read_json("/ti/input/params.json")
-
-#' @examples
-data <- dyntoy::generate_dataset(id = "test", num_cells = 500, num_features = 300, model = "binary_tree") %>% c(., .$prior_information)
-params <- yaml::read_yaml("/code/definition.yml")$parameters %>%
-{.[names(.) != "forbidden"]} %>%
-  map(~ .$default)
-
-expression <- data$expression
-
-p %<-% { NULL }
-f <- NULL
+env <- hash()
 
 #' @filter cors
 cors <- function(req, res) {
@@ -33,18 +18,34 @@ cors <- function(req, res) {
   plumber::forward()
 }
 
-#* Echo back the input
-#* @param msg The message
-#* @get /test
-function(msg="Just a test"){
-  list(msg = paste0("Message: ", msg))
+#* List of running jobs
+#* @get /jobs
+function(){
+  ls(env)
 }
 
 #* Start the process
-#* @get /start
+#* @get /job
 function(){
 
-p %<-% {
+f <- future({
+
+  #   ____________________________________________________________________________
+  #   Load data                                                               ####
+
+  #data <- read_rds("/ti/input/data.rds")
+  #params <- jsonlite::read_json("/ti/input/params.json")
+
+  #' @examples
+  data <- dyntoy::generate_dataset(id = "test", num_cells = 500, num_features = 300, model = "binary_tree") %>% c(., .$prior_information)
+  params <- yaml::read_yaml("/code/definition.yml")$parameters %>%
+  {.[names(.) != "forbidden"]} %>%
+    map(~ .$default)
+
+  expression <- data$expression
+
+  checkpoints <- list()
+
   checkpoints$method_afterpreproc <- as.numeric(Sys.time())
 
         #   ____________________________________________________________________________
@@ -149,24 +150,37 @@ p %<-% {
 
         output
 
-  }
+  })
 
-  f <<- futureOf(p)
-  cat(">>Start<< Processing started...\n")
-  paste0("Process started...\n")
+  newId <- ids::random_id()
+  env[[newId]] <- f
+
+  cat("Job started...\n")
+  newId
 
 }
 
-#* Start the process
+#* Get status
+#* @param job Job ID
 #* @get /status
-function(){
-  cat(paste0(">>Status<< Status is ", resolved(f), "\n"))
-  resolved(f)
+function(job = NULL){
+  cat(paste0("Job ", job, "\n"))
+  if (length(grep(job, keys(env))) == 1) {
+    f <- env[[job]]
+    if (resolved(f)) {
+      "Done"
+    } else {
+      "Running"
+    }
+  }
+  else "Job does not exist"
 }
 
-#* Fetch the result of a process
+#* Get result from a job
+#* @param job ID
 #* @get /result
-function(){
-  cat(paste0(">>Result<< Result is ", p, "\n"))
+function(job = NULL){
+  cat(paste0("Job ", job, "\n"))
+  f <- env[[job]]
   result(f)$value
 }
