@@ -14,13 +14,12 @@ Create a directory locally, like `/tmp/ti`. Then, start the container like this:
 
 	docker run -it -p 8080:8080 <image_name>
 
-## `/test`
+## `/jobs`
 
 In order to test the functionality, use a client of your choice (e.g. [`httpie`](https://httpie.org/)) and use something like this:
 
-
 ```sh
-> http 'localhost:8080/test?msg=This works'
+> http 'localhost:8080/jobs'
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *
 Connection: close
@@ -28,35 +27,32 @@ Content-Length: 31
 Content-Type: application/json
 Date: Thu, 18 Oct 2018 12:02:23 PM GMT
 
-{
-    "msg": [
-        "Message: This works"
-    ]
-}
+[]
 ```
 
-## `/start`
+This endpoint returns a list of job IDs.
 
-A second endpoint is defined that runs the _celltrails_ method on a synthetic
-dataset. It can be run as such:
+## `/job`
 
-	http localhost:8080/start
+Start a new celltrails process. Synthetic data is generated for each call
 
-The process takes some time and therefore it is wrapped in a _promise_.
+	http localhost:8080/job
+
+The output of this (async) call is the job ID for this job. The process takes some time and therefore it is wrapped in a _promise_.
+
+Multiple jobs can be started and the `future` package will _try_ to run them in parallel.
 
 ## `/status`
 
-This endpoint provides feedback on the progress of the process:
+A status can be requested for a job, resulting in either of 3 possibilities: Running, Done and a job ID that is not correct.
 
-    http localhost:8080/status
-
-It simply returns `true` when the process has finished and `false` otherwise.
+    http localhost:8080/status\?job\=<jobID>
 
 ## `/result`
 
 When the process has finished, this endpoint returns the result as a `JSON` serialized object:
 
-    http localhost:8080/result
+    http localhost:8080/result\?job\=<jobID>
 
 Please note:
 
@@ -70,13 +66,9 @@ A whole lot of remarks and comments are appropriate here:
 
 1. The method takes too much time for a synchronous REST call. We therefore implemented a very basic asynchronous version.
 
-2. The current implementation is single-user and single process only. It would
-be better to keep some _state_ the backend. A `start` request would then
-return a job ID to use in subsequent `status` and `result` requests.
+2. We allow for simple job scheduling, but your mileage may vary.
 
-3. Some minimal scheduling should be done, even if it's only FIFO.
-
-4. We currently start from a synthetic dataset, generated when the API is started. This is good for testing, but worhtless when you want to
+3. We currently start from a synthetic dataset, generated when the API is started. This is good for testing, but worhtless when you want to
 analyse real data. By mapping volumes and adapting the `runPlumber.R` file
 this is possible. This, together with the previous remark, however, would
 mean file names have to removed in order to avoid name clashes.
