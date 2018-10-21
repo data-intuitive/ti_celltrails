@@ -1,17 +1,8 @@
-devtools::install_github("richfitz/ids", upgrade = FALSE)
-install.packages("hash")
-
 library(hash)
 library("future")
 plan(multiprocess)
 
 env <- hash()
-
-# newId <- ids::random_id()
-# env$put(newId, 'test1')
-# env$exists(newId)
-# env$get(newId)
-# env
 
 #* List of running jobs
 #* @get /jobs
