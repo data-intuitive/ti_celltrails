@@ -1,0 +1,7 @@
+function:
+  name: celltrails
+  command: Rscript /code/run.R
+  pre-hook: /code/pre-hook.sh
+  post-hook:
+  arguments:
+  parameters:

@@ -6,3 +6,4 @@ data <- dyntoy::generate_dataset(
   model = "tree"
 )
 params <- list()
+saveRDS(data, "/ti/input/data.rds")

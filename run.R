@@ -11,14 +11,14 @@ checkpoints <- list()
 #   ____________________________________________________________________________
 #   Load data                                                               ####
 
-data <- read_rds("/ti/input/data.rds")
-params <- jsonlite::read_json("/ti/input/params.json")
+#data <- read_rds("/ti/input/data.rds")
+#params <- jsonlite::read_json("/ti/input/params.json")
 
 #' @examples
-#' data <- dyntoy::generate_dataset(id = "test", num_cells = 500, num_features = 300, model = "binary_tree") %>% c(., .$prior_information)
-#' params <- yaml::read_yaml("containers/celltrails/definition.yml")$parameters %>%
-#'   {.[names(.) != "forbidden"]} %>%
-#'   map(~ .$default)
+data <- dyntoy::generate_dataset(id = "test", num_cells = 500, num_features = 300, model = "binary_tree") %>% c(., .$prior_information)
+params <- yaml::read_yaml("definition.yml")$parameters %>%
+   {.[names(.) != "forbidden"]} %>%
+   map(~ .$default)
 
 expression <- data$expression
 
