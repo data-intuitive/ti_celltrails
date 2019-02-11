@@ -21,4 +21,11 @@ RUN echo "Pulling porta.sh from Github." \
     && chmod +x /usr/bin/porta.sh
 
 ADD . /code
-CMD [ "porta.sh" ]
+
+EXPOSE 8080
+ENV fprocess="porta.sh"
+ENV read_timeout=3600
+ENV write_timeout=3600
+
+HEALTHCHECK --interval=3s CMD [ -e /tmp/.lock ] || exit 1
+CMD [ "fwatchdog" ]
